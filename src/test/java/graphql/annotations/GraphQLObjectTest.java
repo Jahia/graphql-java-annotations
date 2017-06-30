@@ -29,6 +29,7 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.PropertyDataFetcher;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.validation.constraints.NotNull;
@@ -52,6 +53,11 @@ import static org.testng.Assert.assertTrue;
 
 @SuppressWarnings("unchecked")
 public class GraphQLObjectTest {
+
+    @BeforeMethod
+    public void init() {
+        GraphQLAnnotations.getInstance().getTypeRegistry().clear();
+    }
 
     public static class DefaultAValue implements Supplier<Object> {
 

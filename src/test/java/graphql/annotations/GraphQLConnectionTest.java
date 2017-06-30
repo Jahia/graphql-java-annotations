@@ -19,6 +19,7 @@ import graphql.GraphQL;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
@@ -33,6 +34,11 @@ import static org.testng.Assert.assertTrue;
 
 @SuppressWarnings("unchecked")
 public class GraphQLConnectionTest {
+
+    @BeforeMethod
+    public void init() {
+        GraphQLAnnotations.getInstance().getTypeRegistry().clear();
+    }
 
     public static class Obj {
         @GraphQLField
