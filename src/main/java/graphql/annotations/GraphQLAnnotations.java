@@ -52,7 +52,7 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
     private static final Relay RELAY_TYPES = new Relay();
 
     private Map<String, graphql.schema.GraphQLOutputType> typeRegistry = new HashMap<>();
-    private Map<Class<?>, List<Class<?>>> extensionsTypeRegistry = new HashMap<>();
+    private Map<Class<?>, List<GraphQLObjectType>> extensionsTypeRegistry = new HashMap<>();
 
     private final Stack<String> processing = new Stack<>();
 
@@ -371,8 +371,7 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
         }
 
         if (extensionsTypeRegistry.containsKey(object)) {
-            for (Class<?> aClass : extensionsTypeRegistry.get(object)) {
-                GraphQLObjectType extension = getObjectBuilder(aClass).build();
+            for (GraphQLObjectType extension : extensionsTypeRegistry.get(object)) {
                 builder.fields(extension.getFieldDefinitions());
             }
         }
@@ -714,7 +713,7 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
             if (!extensionsTypeRegistry.containsKey(aClass)) {
                 extensionsTypeRegistry.put(aClass, new ArrayList<>());
             }
-            extensionsTypeRegistry.get(aClass).add(objectClass);
+            extensionsTypeRegistry.get(aClass).add(getObject(objectClass));
         }
     }
 
@@ -725,7 +724,7 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
         } else {
             Class<?> aClass = typeExtension.value();
             if (extensionsTypeRegistry.containsKey(aClass)) {
-                extensionsTypeRegistry.get(aClass).remove(objectClass);
+                extensionsTypeRegistry.get(aClass).remove(getObject(objectClass));
             }
         }
     }

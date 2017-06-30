@@ -16,6 +16,8 @@ package graphql.annotations;
 
 import graphql.schema.*;
 
+import java.util.Map;
+
 public interface GraphQLAnnotationsProcessor {
     /**
      * @deprecated See {@link #getOutputType(Class)}
@@ -26,9 +28,7 @@ public interface GraphQLAnnotationsProcessor {
      * This will examine the class and return a {@link GraphQLUnionType.Builder} ready for further definition
      *
      * @param iface interface to examine
-     *
      * @return a {@link GraphQLUnionType.Builder}
-     *
      * @throws GraphQLAnnotationsException if the class cannot be examined
      * @throws IllegalArgumentException    if <code>iface</code> is not an interface
      */
@@ -38,9 +38,7 @@ public interface GraphQLAnnotationsProcessor {
      * This will examine the class and return a {@link GraphQLInterfaceType.Builder} ready for further definition
      *
      * @param iface interface to examine
-     *
      * @return a {@link GraphQLInterfaceType.Builder}
-     *
      * @throws GraphQLAnnotationsException if the class cannot be examined
      * @throws IllegalArgumentException    if <code>iface</code> is not an interface
      */
@@ -50,9 +48,7 @@ public interface GraphQLAnnotationsProcessor {
      * This will examine the object class and return a {@link GraphQLEnumType.Builder} ready for further definition
      *
      * @param object the object class to examine
-     *
      * @return a {@link GraphQLEnumType.Builder} that represents that object class
-     *
      * @throws GraphQLAnnotationsException if the object class cannot be examined
      */
     GraphQLEnumType.Builder getEnumBuilder(Class<?> object) throws GraphQLAnnotationsException;
@@ -70,9 +66,7 @@ public interface GraphQLAnnotationsProcessor {
      * otherwise it will return a {@link GraphQLObjectType}.
      *
      * @param object the object class to examine
-     *
      * @return a {@link GraphQLOutputType} that represents that object class
-     *
      * @throws GraphQLAnnotationsException if the object class cannot be examined
      */
     GraphQLOutputType getOutputType(Class<?> object) throws GraphQLAnnotationsException;
@@ -87,9 +81,7 @@ public interface GraphQLAnnotationsProcessor {
      * which may be a {@link GraphQLOutputType} or a {@link graphql.schema.GraphQLTypeReference}
      *
      * @param object the object class to examine
-     *
      * @return a {@link GraphQLOutputType} that represents that object class
-     *
      * @throws GraphQLAnnotationsException if the object class cannot be examined
      */
     GraphQLOutputType getOutputTypeOrRef(Class<?> object) throws GraphQLAnnotationsException;
@@ -98,9 +90,7 @@ public interface GraphQLAnnotationsProcessor {
      * This will examine the object class and return a {@link GraphQLObjectType.Builder} ready for further definition
      *
      * @param object the object class to examine
-     *
      * @return a {@link GraphQLObjectType.Builder} that represents that object class
-     *
      * @throws GraphQLAnnotationsException if the object class cannot be examined
      */
     GraphQLObjectType.Builder getObjectBuilder(Class<?> object) throws GraphQLAnnotationsException;
@@ -108,10 +98,15 @@ public interface GraphQLAnnotationsProcessor {
     /**
      * This will turn a {@link GraphQLObjectType} into a corresponding {@link GraphQLInputObjectType}
      *
-     * @param graphQLType the graphql object type
+     * @param graphQLType   the graphql object type
      * @param newNamePrefix since graphql types MUST be unique, this prefix will be applied to the new input types
-     *
      * @return a {@link GraphQLInputObjectType}
      */
     GraphQLInputObjectType getInputObject(GraphQLObjectType graphQLType, String newNamePrefix);
+
+    void registerTypeExtension(Class<?> objectClass);
+
+    void unregisterTypeExtension(Class<?> objectClass);
+
+    Map<String, GraphQLOutputType> getTypeRegistry();
 }
