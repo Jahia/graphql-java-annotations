@@ -67,7 +67,7 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
 
     private static final Relay RELAY_TYPES = new Relay();
 
-    private Map<String, graphql.schema.GraphQLOutputType> typeRegistry = new HashMap<>();
+    private Map<String, graphql.schema.GraphQLType> typeRegistry = new HashMap<>();
     private final Stack<String> processing = new Stack<>();
 
     public GraphQLAnnotations() {
@@ -261,7 +261,7 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
         // all type instances to be unique singletons
         String typeName = getTypeName(object);
 
-        GraphQLOutputType type = typeRegistry.get(typeName);
+        GraphQLOutputType type = (GraphQLOutputType) typeRegistry.get(typeName);
         if (type != null) { // type already exists, do not build a new new one
             return type;
         }
@@ -591,8 +591,9 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
                     Class<?> t = parameter.getType();
                     graphql.schema.GraphQLType graphQLType = finalTypeFunction.buildType(t, parameter.getAnnotatedType());
                     if (graphQLType instanceof GraphQLObjectType) {
-                        GraphQLInputObjectType inputObject = getInputObject((GraphQLObjectType) graphQLType, "input");
+                        GraphQLInputObjectType inputObject = getInputObject((GraphQLObjectType) graphQLType, "");
                         graphQLType = inputObject;
+                        typeRegistry.put(inputObject.getName(), inputObject);
                     }
                     return getArgument(parameter, graphQLType);
                 }).collect(Collectors.toList());
@@ -659,6 +660,18 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
 
     }
 
+    public GraphQLInputObjectType getInputObject(Class<?> object) {
+        String typeName = getTypeName(object);
+        if (typeRegistry.containsKey(typeName)) {
+            return (GraphQLInputObjectType) typeRegistry.get(typeName);
+        } else {
+            graphql.schema.GraphQLType graphQLType = getObject(object);
+            GraphQLInputObjectType inputObject = getInputObject((GraphQLObjectType) graphQLType, "");
+            typeRegistry.put(inputObject.getName(), inputObject);
+            return inputObject;
+        }
+    }
+
     @Override
     public GraphQLInputObjectType getInputObject(GraphQLObjectType graphQLType, String newNamePrefix) {
         GraphQLObjectType object = graphQLType;
@@ -719,7 +732,7 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
         getInstance().registerType(typeFunction);
     }
 
-    public Map<String, graphql.schema.GraphQLOutputType> getTypeRegistry() {
+    public Map<String, graphql.schema.GraphQLType> getTypeRegistry() {
         return typeRegistry;
     }
 
