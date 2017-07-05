@@ -744,7 +744,7 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
             if (!extensionsTypeRegistry.containsKey(aClass)) {
                 extensionsTypeRegistry.put(aClass, new HashSet<>());
             }
-            extensionsTypeRegistry.get(aClass).add(getObject(objectClass));
+            extensionsTypeRegistry.get(aClass).add(objectClass);
         }
     }
 
@@ -755,7 +755,7 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
         } else {
             Class<?> aClass = typeExtension.value();
             if (extensionsTypeRegistry.containsKey(aClass)) {
-                extensionsTypeRegistry.get(aClass).remove(getObject(objectClass));
+                extensionsTypeRegistry.get(aClass).remove(objectClass);
             }
         }
     }
