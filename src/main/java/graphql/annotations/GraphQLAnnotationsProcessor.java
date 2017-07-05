@@ -119,5 +119,5 @@ public interface GraphQLAnnotationsProcessor {
 
     void unregisterTypeExtension(Class<?> objectClass);
 
-    public Map<String, graphql.schema.GraphQLType> getTypeRegistry();
+    public void removeAllTypes();
 }

@@ -772,6 +772,12 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
         return typeRegistry;
     }
 
+    @Override
+    public void removeAllTypes() {
+        typeRegistry.clear();
+        extensionsTypeRegistry.clear();
+    }
+
     private static class ConnectionDataFetcher implements DataFetcher {
         private final Class<? extends Connection> connection;
         private final DataFetcher actualDataFetcher;
