@@ -24,7 +24,8 @@ apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
 
 def releaseVersion = System.properties.RELEASE_VERSION
-version = releaseVersion ? releaseVersion : new SimpleDateFormat('yyyy-MM-dd\'T\'HH-mm-ss').format(new Date())
+//version = releaseVersion ? releaseVersion : new SimpleDateFormat('yyyy-MM-dd\'T\'HH-mm-ss').format(new Date())
+version = '3.0.0-jahia1-SNAPSHOT'
 
 // custom tasks for creating source/javadoc jars
 task sourcesJar(type: Jar, dependsOn: classes) {
@@ -58,6 +59,9 @@ jar {
 repositories {
     mavenLocal()
     maven {
+        url "https://devtools.jahia.com/nexus/content/repositories/thirdparty-snapshots"
+    }
+    maven {
         url "https://devtools.jahia.com/nexus/content/repositories/thirdparty-releases"
     }
     mavenCentral()
@@ -71,7 +75,7 @@ gradle.projectsEvaluated {
 
 dependencies {
     compile 'javax.validation:validation-api:1.1.0.Final'
-    compile 'com.graphql-java:graphql-java:3.0.0-jahia'
+    compile 'com.graphql-java:graphql-java:3.0.0-jahia1-SNAPSHOT'
 
     // OSGi
     compileOnly 'org.osgi:org.osgi.core:6.0.0'
@@ -138,6 +142,17 @@ publishing {
             }
         }
     }
+
+    repositories {
+        maven {
+            url "https://devtools.jahia.com/nexus/content/repositories/thirdparty-snapshots"
+            credentials {
+                username = mavenUser
+                password = mavenPassword
+            }
+        }
+    }
+
 }
 
 afterReleaseBuild.dependsOn bintrayUpload
