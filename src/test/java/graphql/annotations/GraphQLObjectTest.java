@@ -622,7 +622,7 @@ public class GraphQLObjectTest {
         GraphQLObjectType object = GraphQLAnnotations.object(OptionalTest.class);
         GraphQLSchema schema = newSchema().query(object).build();
 
-        GraphQL graphQL = GraphQL.newGraphQL(schema).queryExecutionStrategy(new EnhancedExecutionStrategy()).build();
+        GraphQL graphQL = GraphQL.newGraphQL(schema).build();
         ExecutionResult result = graphQL.execute("{empty, nonempty}", new OptionalTest());
         assertTrue(result.getErrors().isEmpty());
         Map<String, Object> v = (Map<String, Object>) result.getData();
@@ -641,7 +641,7 @@ public class GraphQLObjectTest {
         }).build()).build();
         GraphQLSchema schema = newSchema().query(object).mutation(mutation).build();
 
-        GraphQL graphQL = GraphQL.newGraphQL(schema).queryExecutionStrategy(new EnhancedExecutionStrategy()).build();
+        GraphQL graphQL = GraphQL.newGraphQL(schema).build();
         ExecutionResult result = graphQL.execute("mutation {test(input: {empty: \"test\"}) { empty nonempty } }", new OptionalTest());
         assertTrue(result.getErrors().isEmpty());
         Map<String, Object> v = (Map<String, Object>) ((Map<String, Object>) result.getData()).get("test");
@@ -672,7 +672,7 @@ public class GraphQLObjectTest {
     public void queryEnum() {
         GraphQLObjectType object = GraphQLAnnotations.object(EnumTest.class);
         GraphQLSchema schema = newSchema().query(object).build();
-        GraphQL graphQL = GraphQL.newGraphQL(schema).queryExecutionStrategy(new EnhancedExecutionStrategy()).build();
+        GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
         ExecutionResult result = graphQL.execute("{e}", new EnumTest(EnumTest.E.B));
         assertTrue(result.getErrors().isEmpty());
