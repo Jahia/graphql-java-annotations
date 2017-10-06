@@ -126,4 +126,13 @@ public interface GraphQLAnnotationsProcessor {
      * @return a {@link GraphQLInputObjectType}
      */
     GraphQLInputType getInputObject(GraphQLType graphQLType, String newNamePrefix);
+
+    void registerTypeExtension(Class<?> objectClass);
+
+    void unregisterTypeExtension(Class<?> objectClass);
+
+    /**
+     * Clear internal registry
+     */
+    public void removeAllTypes();
 }
