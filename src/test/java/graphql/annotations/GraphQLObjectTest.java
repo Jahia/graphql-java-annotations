@@ -17,39 +17,20 @@ package graphql.annotations;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.Scalars;
-import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.FieldDataFetcher;
-import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLInputObjectType;
-import graphql.schema.GraphQLInputType;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
+import graphql.schema.*;
 import graphql.schema.GraphQLType;
-import graphql.schema.PropertyDataFetcher;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.AnnotatedType;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static graphql.Scalars.GraphQLString;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLSchema.newSchema;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 @SuppressWarnings("unchecked")
 public class GraphQLObjectTest {
@@ -203,8 +184,8 @@ public class GraphQLObjectTest {
         assertEquals(fields.get(5).getName(), "privateTest");
         assertEquals(fields.get(6).getName(), "publicTest");
 
-        assertEquals(fields.get(5).getDataFetcher().getClass(), PropertyDataFetcher.class);
-        assertEquals(fields.get(6).getDataFetcher().getClass(), FieldDataFetcher.class);
+        assertEquals(fields.get(5).getDataFetcher().getClass(), ExtensionDataFetcherWrapper.class);
+        assertEquals(fields.get(6).getDataFetcher().getClass(), ExtensionDataFetcherWrapper.class);
 
         assertEquals(fields.get(7).getName(), "z_nonOptionalString");
         assertTrue(fields.get(7).getType() instanceof graphql.schema.GraphQLNonNull);

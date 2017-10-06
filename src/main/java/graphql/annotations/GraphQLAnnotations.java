@@ -22,24 +22,8 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import javax.validation.constraints.NotNull;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.AnnotatedType;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Stack;
-import java.util.TreeMap;
+import java.lang.reflect.*;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -70,6 +54,7 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
     private static final List<Class> TYPES_FOR_CONNECTION = Arrays.asList(GraphQLObjectType.class, GraphQLInterfaceType.class, GraphQLUnionType.class, GraphQLTypeReference.class);
 
     private Map<String, graphql.schema.GraphQLType> typeRegistry = new HashMap<>();
+    private Map<Class<?>, Set<Class<?>>> extensionsTypeRegistry = new HashMap<>();
     private final Stack<String> processing = new Stack<>();
 
     public GraphQLAnnotations() {
@@ -161,6 +146,8 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
                 builder.field(getField(method));
             }
         }
+        builder.fields(getExtensionFields(iface));
+
         GraphQLTypeResolver typeResolver = iface.getAnnotation(GraphQLTypeResolver.class);
         builder.typeResolver(newInstance(typeResolver.value()));
         return builder;
@@ -388,9 +375,38 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
                 } else {
                     builder.withInterface((GraphQLInterfaceType) getInterface(iface));
                 }
+                builder.fields(getExtensionFields(iface));
             }
         }
+
+        builder.fields(getExtensionFields(object));
+
         return builder;
+    }
+
+    private List<GraphQLFieldDefinition> getExtensionFields(Class<?> object) {
+        List<GraphQLFieldDefinition> fields = new ArrayList<>();
+        if (extensionsTypeRegistry.containsKey(object)) {
+            for (Class<?> aClass : extensionsTypeRegistry.get(object)) {
+                for (Method method : getOrderedMethods(aClass)) {
+                    if (method.isBridge() || method.isSynthetic()) {
+                        continue;
+                    }
+                    if (breadthFirstSearch(method)) {
+                        fields.add(getField(method));
+                    }
+                }
+                for (Field field : getAllFields(aClass).values()) {
+                    if (Modifier.isStatic(field.getModifiers())) {
+                        continue;
+                    }
+                    if (parentalSearch(field)) {
+                        fields.add(getField(field));
+                    }
+                }
+            }
+        }
+        return fields;
     }
 
     public static GraphQLObjectType.Builder objectBuilder(Class<?> object) throws GraphQLAnnotationsException {
@@ -479,16 +495,16 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
             if (outputType == GraphQLBoolean || (outputType instanceof GraphQLNonNull && ((GraphQLNonNull) outputType).getWrappedType() == GraphQLBoolean)) {
                 if (checkIfPrefixGetterExists(field.getDeclaringClass(), "is", field.getName()) ||
                         checkIfPrefixGetterExists(field.getDeclaringClass(), "get", field.getName())) {
-                    actualDataFetcher = new PropertyDataFetcher(field.getName());
+                    actualDataFetcher = new ExtensionDataFetcherWrapper(field.getDeclaringClass(), new PropertyDataFetcher(field.getName()));
                 }
             } else if (checkIfPrefixGetterExists(field.getDeclaringClass(), "get", field.getName())) {
-                actualDataFetcher = new PropertyDataFetcher(field.getName());
+                actualDataFetcher = new ExtensionDataFetcherWrapper(field.getDeclaringClass(), new PropertyDataFetcher(field.getName()));
             } else if (hasFluentGetter) {
                 actualDataFetcher = new MethodDataFetcher(fluentMethod, typeFunction);
             }
 
             if (actualDataFetcher == null) {
-                actualDataFetcher = new FieldDataFetcher(field.getName());
+                actualDataFetcher = new ExtensionDataFetcherWrapper(field.getDeclaringClass(), new FieldDataFetcher(field.getName()));
             }
         }
 
@@ -733,6 +749,31 @@ public class GraphQLAnnotations implements GraphQLAnnotationsProcessor {
     public void setDefaultTypeFunction(TypeFunction function) {
         defaultTypeFunction = function;
         ((DefaultTypeFunction) defaultTypeFunction).setAnnotationsProcessor(this);
+    }
+
+    public void registerTypeExtension(Class<?> objectClass) {
+        GraphQLTypeExtension typeExtension = objectClass.getAnnotation(GraphQLTypeExtension.class);
+        if (typeExtension == null) {
+            throw new GraphQLAnnotationsException("Class is not annotated with GraphQLTypeExtension", null);
+        } else {
+            Class<?> aClass = typeExtension.value();
+            if (!extensionsTypeRegistry.containsKey(aClass)) {
+                extensionsTypeRegistry.put(aClass, new HashSet<>());
+            }
+            extensionsTypeRegistry.get(aClass).add(objectClass);
+        }
+    }
+
+    public void unregisterTypeExtension(Class<?> objectClass) {
+        GraphQLTypeExtension typeExtension = objectClass.getAnnotation(GraphQLTypeExtension.class);
+        if (typeExtension == null) {
+            throw new GraphQLAnnotationsException("Class is not annotated with GraphQLTypeExtension", null);
+        } else {
+            Class<?> aClass = typeExtension.value();
+            if (extensionsTypeRegistry.containsKey(aClass)) {
+                extensionsTypeRegistry.get(aClass).remove(objectClass);
+            }
+        }
     }
 
     public void registerType(TypeFunction typeFunction) {
