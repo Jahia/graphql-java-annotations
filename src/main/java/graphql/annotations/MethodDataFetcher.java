@@ -18,10 +18,11 @@ import graphql.schema.*;
 import graphql.schema.GraphQLType;
 
 import java.lang.reflect.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static graphql.annotations.ReflectionKit.constructNewInstance;
-import static graphql.annotations.ReflectionKit.constructor;
 import static graphql.annotations.ReflectionKit.newInstance;
 import static graphql.annotations.util.NamingKit.toGraphqlName;
 
@@ -63,16 +64,23 @@ class MethodDataFetcher implements DataFetcher {
 
     private Object[] invocationArgs(DataFetchingEnvironment environment) {
         List<Object> result = new ArrayList<>();
-        Iterator envArgs = environment.getArguments().values().iterator();
+        Map<String,Object> envArgs = environment.getArguments();
         for (Parameter p : method.getParameters()) {
+            String parameterName;
+            GraphQLName name = p.getAnnotation(GraphQLName.class);
+            if (name != null) {
+                parameterName = toGraphqlName(name.value());
+            } else {
+                parameterName = toGraphqlName(p.getName());
+            }
+
             Class<?> paramType = p.getType();
             if (DataFetchingEnvironment.class.isAssignableFrom(paramType)) {
                 result.add(environment);
                 continue;
             }
             graphql.schema.GraphQLType graphQLType = typeFunction.buildType(paramType, p.getAnnotatedType());
-            Object arg = envArgs.next();
-            result.add(buildArg(p.getParameterizedType(), graphQLType, arg));
+            result.add(buildArg(p.getParameterizedType(), graphQLType, envArgs.get(parameterName)));
         }
         return result.toArray();
     }
