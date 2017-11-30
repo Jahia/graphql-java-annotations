@@ -134,6 +134,16 @@ publishing {
             }
         }
     }
+
+    repositories {
+        maven {
+            url "https://devtools.jahia.com/nexus/content/repositories/thirdparty-snapshots"
+            credentials {
+                username = mavenUser
+                password = mavenPassword
+            }
+        }
+    }
 }
 
 afterReleaseBuild.dependsOn bintrayUpload
